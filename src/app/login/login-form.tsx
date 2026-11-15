@@ -1,16 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
-import { ESTADO_INICIAL } from "@/lib/acciones";
+import { useFormAction } from "@/lib/use-form-action";
 import { iniciarSesion } from "./actions";
 
 export function LoginForm({ siguiente }: { siguiente?: string }) {
-  const [estado, accion, pendiente] = useActionState(iniciarSesion, ESTADO_INICIAL);
+  const { estado, onSubmit, pendiente } = useFormAction(iniciarSesion);
 
   return (
-    <form action={accion} className="flex flex-col gap-5">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
       <input type="hidden" name="siguiente" value={siguiente ?? ""} />
       <Input
         etiqueta="Correo electrónico"

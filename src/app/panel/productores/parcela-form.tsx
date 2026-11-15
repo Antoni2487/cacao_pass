@@ -1,17 +1,14 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { MensajesFormulario } from "@/components/ui/form-mensajes";
-import { ESTADO_INICIAL } from "@/lib/acciones";
+import { useFormAction } from "@/lib/use-form-action";
 import { crearParcela } from "./actions";
 
 export function ParcelaForm({ productorId }: { productorId: string }) {
-  const [estado, enviar, pendiente] = useActionState(
-    crearParcela.bind(null, productorId),
-    ESTADO_INICIAL,
-  );
+  const { estado, onSubmit, pendiente } = useFormAction(crearParcela.bind(null, productorId));
   const formulario = useRef<HTMLFormElement>(null);
   const e = estado.errores ?? {};
 
@@ -21,7 +18,7 @@ export function ParcelaForm({ productorId }: { productorId: string }) {
   }, [estado]);
 
   return (
-    <form ref={formulario} action={enviar} className="flex flex-col gap-5">
+    <form ref={formulario} onSubmit={onSubmit} className="flex flex-col gap-5">
       <div className="grid gap-5 sm:grid-cols-3">
         <Input
           etiqueta="Nombre"

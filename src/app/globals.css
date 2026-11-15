@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de diseño tomados del Figma "Trazabilidad QR - Blockchain".
+ * Uso en Tailwind: bg-cacao-700, text-tinta, border-borde, etc.
+ */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-cacao-900: #231915; /* sidebar */
+  --color-cacao-800: #3a2a23; /* hover sidebar, tarjeta de usuario */
+  --color-cacao-700: #7a4528; /* botón primario, ítem activo */
+  --color-cacao-600: #8f5533; /* hover del primario */
+  --color-cacao-100: #f6ebe4; /* fondos suaves (badge registrado) */
+
+  --color-crema: #f8f6f3; /* fondo de página */
+  --color-borde: #ebe6e1;
+  --color-tinta: #1f1714; /* texto principal */
+  --color-tenue: #6b6461; /* texto secundario */
+
+  --color-exito-50: #e9f8ee;
+  --color-exito-700: #15803d;
+  --color-aviso-50: #fdf4dc;
+  --color-aviso-700: #b45309;
+  --color-error-50: #fde8e8;
+  --color-error-700: #dc2626;
+}
+
+body {
+  background: var(--color-crema);
+  color: var(--color-tinta);
+}

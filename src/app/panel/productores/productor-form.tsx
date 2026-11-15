@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/field";
 import { MensajesFormulario } from "@/components/ui/form-mensajes";
-import { ESTADO_INICIAL, type EstadoFormulario } from "@/lib/acciones";
+import type { EstadoFormulario } from "@/lib/acciones";
+import { useFormAction } from "@/lib/use-form-action";
 import { ETIQUETAS, TIPOS_PRODUCTOR, type Productor } from "@/types/dominio";
 
 type Accion = (estado: EstadoFormulario, formData: FormData) => Promise<EstadoFormulario>;
@@ -18,11 +18,11 @@ export function ProductorForm({
   productor?: Productor;
   textoBoton: string;
 }) {
-  const [estado, enviar, pendiente] = useActionState(accion, ESTADO_INICIAL);
+  const { estado, onSubmit, pendiente } = useFormAction(accion);
   const e = estado.errores ?? {};
 
   return (
-    <form action={enviar} className="flex flex-col gap-5">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <Input
           etiqueta="Nombre"

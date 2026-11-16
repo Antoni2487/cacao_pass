@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { CirclePlus, LayoutGrid, Leaf, LogOut, Menu, Users, X } from "lucide-react";
+import { CirclePlus, LayoutGrid, Leaf, LogOut, Menu, QrCode, Users, X } from "lucide-react";
 import { cerrarSesion } from "@/app/login/actions";
 import { cn } from "@/lib/utils";
 import type { Usuario } from "@/types/dominio";
@@ -14,6 +14,7 @@ const enlaces = [
   { href: "/panel/lotes", texto: "Lotes de cacao", icono: Leaf },
   { href: "/panel/productores", texto: "Productores", icono: Users },
   { href: "/panel/etapas/nueva", texto: "Registrar etapa", icono: CirclePlus },
+  { href: "/panel/qr", texto: "Códigos QR", icono: QrCode },
 ];
 
 function iniciales(nombre: string) {

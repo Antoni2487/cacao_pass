@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CircleCheck, Link2, MapPin, TriangleAlert } from "lucide-react";
 import { EstadoLoteBadge } from "@/components/panel/estado-lote";
+import { TarjetaQr } from "@/components/panel/tarjeta-qr";
 import { ReintentarSellado } from "@/components/panel/reintentar-sellado";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { urlExplorador } from "@/lib/trazabilidad/explorador";
 import { Card, CardHeader, EstadoVacio } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { urlPublicaLote } from "@/lib/qr";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { formatearFecha, formatearNumero } from "@/lib/utils";
 import { ETIQUETAS, type Etapa, type Lote, type Parcela, type Productor } from "@/types/dominio";
@@ -70,6 +72,9 @@ export default async function LotePage({
         acciones={
           <>
             <EstadoLoteBadge estado={lote.estado} />
+            <ButtonLink href={`/lote/${lote.codigo}`} target="_blank" variante="secundario">
+              Ver pasaporte público
+            </ButtonLink>
             {lote.etapas.length < 5 && (
               <ButtonLink href={`/panel/etapas/nueva?lote=${lote.codigo}`}>
                 Registrar etapa
@@ -177,28 +182,38 @@ export default async function LotePage({
           </Card>
         </div>
 
-        <Card className="h-fit">
-          <CardHeader titulo="Datos del lote" />
-          <dl className="grid grid-cols-2 gap-4 p-6">
-            <Dato etiqueta="Código" valor={lote.codigo} />
-            <Dato etiqueta="Variedad" valor={lote.variedad} />
-            <Dato etiqueta="Peso" valor={`${formatearNumero(lote.peso_kg)} kg`} />
-            <Dato etiqueta="Destino" valor={lote.destino} />
-            <div className="col-span-2">
-              <dt className="text-xs text-tenue">Certificaciones</dt>
-              <dd className="mt-1.5 flex flex-wrap gap-2">
-                {lote.certificaciones.length === 0
-                  ? "—"
-                  : lote.certificaciones.map((c) => (
-                      <Badge key={c} tono="exito">
-                        {c}
-                      </Badge>
-                    ))}
-              </dd>
-            </div>
-            <Dato etiqueta="Registrado" valor={formatearFecha(lote.created_at)} />
-          </dl>
-        </Card>
+        <div className="flex flex-col gap-6">
+          <Card className="p-6">
+            <h2 className="mb-4 text-center text-base font-semibold">Código QR del lote</h2>
+            <TarjetaQr codigo={lote.codigo} url={urlPublicaLote(lote.codigo)} />
+            <p className="mt-4 text-center text-xs text-tenue">
+              Va impreso en los sacos y documentos de exportación. El comprador lo escanea y ve el
+              pasaporte digital.
+            </p>
+          </Card>
+          <Card className="h-fit">
+            <CardHeader titulo="Datos del lote" />
+            <dl className="grid grid-cols-2 gap-4 p-6">
+              <Dato etiqueta="Código" valor={lote.codigo} />
+              <Dato etiqueta="Variedad" valor={lote.variedad} />
+              <Dato etiqueta="Peso" valor={`${formatearNumero(lote.peso_kg)} kg`} />
+              <Dato etiqueta="Destino" valor={lote.destino} />
+              <div className="col-span-2">
+                <dt className="text-xs text-tenue">Certificaciones</dt>
+                <dd className="mt-1.5 flex flex-wrap gap-2">
+                  {lote.certificaciones.length === 0
+                    ? "—"
+                    : lote.certificaciones.map((c) => (
+                        <Badge key={c} tono="exito">
+                          {c}
+                        </Badge>
+                      ))}
+                </dd>
+              </div>
+              <Dato etiqueta="Registrado" valor={formatearFecha(lote.created_at)} />
+            </dl>
+          </Card>
+        </div>
       </div>
     </>
   );

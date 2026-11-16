@@ -18,10 +18,16 @@ let proveedor: JsonRpcProvider | undefined;
 let wallet: Wallet | undefined;
 
 function obtenerProveedor(): Provider {
-  // staticNetwork evita una consulta extra en cada petición para detectar la red.
-  proveedor ??= new JsonRpcProvider(process.env.AMOY_RPC_URL || RPC_PUBLICO_AMOY, CHAIN_ID_AMOY, {
-    staticNetwork: true,
-  });
+  if (!proveedor) {
+    const url = process.env.AMOY_RPC_URL?.trim() || RPC_PUBLICO_AMOY;
+    if (/[<>]/.test(url)) {
+      throw new Error(
+        "AMOY_RPC_URL tiene el texto de ejemplo <api-key>: déjala vacía o pon tu clave.",
+      );
+    }
+    // staticNetwork evita una consulta extra en cada petición para detectar la red.
+    proveedor = new JsonRpcProvider(url, CHAIN_ID_AMOY, { staticNetwork: true });
+  }
   return proveedor;
 }
 

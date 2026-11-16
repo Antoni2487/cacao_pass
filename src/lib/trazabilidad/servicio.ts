@@ -1,11 +1,18 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { cache } from "react";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import type { DatosEtapa } from "@/lib/validaciones/etapa";
-import type { Etapa } from "@/types/dominio";
-import { esperarConfirmacion, sellarHash } from "./blockchain";
+import type { Etapa, Lote, Parcela, Productor } from "@/types/dominio";
+import { direccionWallet, esperarConfirmacion, leerSello, sellarHash } from "./blockchain";
 import { datosDeCalidad, estadoLoteTrasEtapa, ordenDeEtapa, siguienteEtapa } from "./etapas";
 import { calcularHashEtapa } from "./hash";
+import {
+  estadoDelLote,
+  evaluarEtapa,
+  type EstadoEtapa,
+  type EstadoLoteVerificado,
+} from "./verificacion";
 
 /**
  * Casos de uso de la trazabilidad. Usan la service role porque las etapas solo
@@ -188,4 +195,117 @@ export async function reintentarSellado(etapaId: string): Promise<ResultadoSella
   }
 
   return { etapaId, hash, ...(await enviarSello(etapaId, hash)) };
+}
+
+// ---------------------------------------------------------------------------
+// Verificación (RF10, RF11)
+// ---------------------------------------------------------------------------
+
+export interface EtapaVerificada extends Etapa {
+  evidencias: { url: string; tipo: "foto" | "pdf" }[];
+  /** Hash recalculado con los datos actuales de la base de datos. */
+  hashActual: string;
+  /** Hash grabado en la blockchain (null si no hay sello legible). */
+  hashEnCadena: string | null;
+  estado: EstadoEtapa;
+  motivo: string;
+}
+
+export interface LoteVerificado {
+  lote: Lote & { productores: Productor; parcelas: Parcela };
+  etapas: EtapaVerificada[];
+  /** "error_red": no se pudo consultar la blockchain; no se afirma ni niega nada. */
+  estado: EstadoLoteVerificado | "error_red";
+  /** Dirección de la wallet emisora, para enlazarla en el explorador. */
+  wallet: string | null;
+  verificadoEn: string;
+}
+
+type FilaLoteCompleto = LoteVerificado["lote"] & {
+  etapas: (Etapa & { evidencias: EtapaVerificada["evidencias"] })[];
+};
+
+/**
+ * Recalcula el hash de cada etapa con los datos actuales y lo compara con el
+ * que está en la blockchain. Devuelve null si el lote no existe.
+ * `cache` evita repetir la verificación si la página y sus metadatos la piden.
+ */
+export const verificarLote = cache(async (codigo: string): Promise<LoteVerificado | null> => {
+  const db = crearClienteAdmin();
+  const { data: fila } = await db
+    .from("lotes")
+    .select("*, productores(*), parcelas(*), etapas(*, evidencias(url, tipo))")
+    .eq("codigo", codigo)
+    .order("orden", { referencedTable: "etapas" })
+    .maybeSingle<FilaLoteCompleto>();
+  if (!fila) return null;
+
+  const { etapas, ...lote } = fila;
+  let wallet: string | null = null;
+  let errorRed = false;
+
+  try {
+    wallet = direccionWallet();
+  } catch (error) {
+    console.error("[verificacion] wallet no configurada", error);
+    errorRed = true;
+  }
+
+  const verificadas = await Promise.all(
+    etapas.map(async (etapa): Promise<EtapaVerificada> => {
+      const hashActual = hashDeFila(etapa, lote.codigo);
+      let sello = null;
+      if (etapa.tx_hash && wallet) {
+        try {
+          sello = await leerSello(etapa.tx_hash);
+        } catch (error) {
+          console.error("[verificacion] RPC", error);
+          errorRed = true;
+        }
+      }
+
+      const resultado = evaluarEtapa({
+        hashActual,
+        txHash: etapa.tx_hash,
+        marcadaComoSellada: Boolean(etapa.sellado_en),
+        sello,
+        walletEsperada: wallet ?? "",
+      });
+
+      // Confirmación tardía: el bloque llegó después de responder al operador.
+      if (resultado.estado === "verificado" && !etapa.sellado_en && sello?.fecha) {
+        etapa.sellado_en = sello.fecha.toISOString();
+        await db.from("etapas").update({ sellado_en: etapa.sellado_en }).eq("id", etapa.id);
+      }
+
+      return { ...etapa, hashActual, hashEnCadena: sello?.hash ?? null, ...resultado };
+    }),
+  );
+
+  const estados = verificadas.map((e) => e.estado);
+  return {
+    lote,
+    etapas: verificadas,
+    // Una alteración detectada se informa aunque otra etapa haya fallado por red.
+    estado: estados.includes("alterado")
+      ? "alterado"
+      : errorRed
+        ? "error_red"
+        : estadoDelLote(estados),
+    wallet,
+    verificadoEn: new Date().toISOString(),
+  };
+});
+
+/** RF14: guarda un escaneo del QR para las estadísticas. Nunca rompe la página. */
+export async function registrarEscaneo(
+  loteId: string,
+  pais: string | null,
+  estado: LoteVerificado["estado"],
+) {
+  if (estado !== "verificado" && estado !== "alterado") return;
+  const { error } = await crearClienteAdmin()
+    .from("escaneos")
+    .insert({ lote_id: loteId, pais, resultado: estado });
+  if (error) console.error("[escaneos]", error);
 }

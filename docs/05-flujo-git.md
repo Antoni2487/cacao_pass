@@ -9,7 +9,7 @@
 | `feature/<nombre>` | Una funcionalidad                                         | `develop`     | `develop`            |
 | `hotfix/<nombre>`  | Arreglo urgente en producción                             | `main`        | `main` y `develop`   |
 
-Ramas creadas hasta ahora (Día 1), todas fusionadas en `develop`:
+Ramas creadas hasta ahora, todas fusionadas en `develop`:
 
 ```text
 feature/setup-proyecto
@@ -19,6 +19,14 @@ feature/productores-parcelas
 feature/lotes
 feature/dashboard-basico
 feature/documentacion-tecnica
+feature/formato-config
+feature/hash-canonico          # Día 2
+feature/sellado-blockchain
+fix/tsconfig-es2020
+feature/registro-etapas
+feature/qr-lotes
+feature/verificacion-publica
+feature/documentacion-dia-2
 ```
 
 ## Ciclo de una funcionalidad
@@ -29,7 +37,7 @@ git pull
 git checkout -b feature/registro-etapas
 
 # … trabajar y hacer commits …
-npm run lint && npm run typecheck && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
 
 git checkout develop
 git merge --no-ff feature/registro-etapas   # --no-ff deja visible la rama en el historial

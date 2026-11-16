@@ -8,13 +8,13 @@ Demo para el curso _Innovación y Desarrollo Tecnológico_ (caso Machu Picchu Fo
 
 ## Stack
 
-| Pieza | Tecnología |
-| --- | --- |
-| Web + API | Next.js 15 (App Router) + TypeScript |
-| Estilos | Tailwind CSS 4 |
-| Base de datos, login y archivos | Supabase (PostgreSQL + Auth + Storage) |
-| Blockchain | Polygon Amoy (testnet) con ethers.js v6 |
-| Despliegue | Vercel |
+| Pieza                           | Tecnología                              |
+| ------------------------------- | --------------------------------------- |
+| Web + API                       | Next.js 15 (App Router) + TypeScript    |
+| Estilos                         | Tailwind CSS 4                          |
+| Base de datos, login y archivos | Supabase (PostgreSQL + Auth + Storage)  |
+| Blockchain                      | Polygon Amoy (testnet) con ethers.js v6 |
+| Despliegue                      | Vercel                                  |
 
 ## Instalación local
 
@@ -33,13 +33,13 @@ La configuración de Supabase (tablas, usuarios y roles) está en
 
 ## Scripts
 
-| Comando | Qué hace |
-| --- | --- |
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Compilación de producción |
-| `npm run lint` | ESLint |
+| Comando             | Qué hace                        |
+| ------------------- | ------------------------------- |
+| `npm run dev`       | Servidor de desarrollo          |
+| `npm run build`     | Compilación de producción       |
+| `npm run lint`      | ESLint                          |
 | `npm run typecheck` | Revisión de tipos de TypeScript |
-| `npm run format` | Formatea el código con Prettier |
+| `npm run format`    | Formatea el código con Prettier |
 
 ## Flujo de trabajo (Git Flow)
 

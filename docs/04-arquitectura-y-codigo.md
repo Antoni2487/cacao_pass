@@ -31,7 +31,7 @@ flowchart LR
 | Qué                                   | Dónde                                        | Por qué                                                                   |
 | ------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
 | CRUD de productores, parcelas y lotes | **Server Actions** con la sesión del usuario | RLS decide qué puede hacer cada rol; no hace falta un endpoint por tabla  |
-| Hash, sellado y verificación          | **API routes** (Día 2)                       | Usan la clave privada de la wallet: solo pueden ejecutarse en el servidor |
+| Hash, sellado y verificación          | **API routes** + `lib/trazabilidad`          | Usan la clave privada de la wallet: solo pueden ejecutarse en el servidor |
 | Pasaporte público                     | **Server Components** con la service role    | El visitante no necesita sesión y no se abre ninguna tabla al público     |
 | Validación de formularios             | **Zod**, en el servidor                      | Nunca confiar en lo que llega del navegador                               |
 
@@ -39,27 +39,66 @@ flowchart LR
 
 ```text
 src/
-├── app/                         Rutas (App Router de Next.js)
-│   ├── login/                   01 · Login (página, formulario y acciones)
-│   └── panel/                   Panel interno (protegido por el middleware)
-│       ├── page.tsx             02 · Dashboard
-│       ├── productores/         Listado, alta, detalle con parcelas
-│       └── lotes/               Listado, alta, 04 · Detalle del lote
+├── app/                           Rutas (App Router de Next.js)
+│   ├── login/                     01 · Login (página, formulario y acciones)
+│   ├── panel/                     Panel interno (protegido por el middleware)
+│   │   ├── page.tsx               02 · Dashboard
+│   │   ├── productores/           Listado, alta, detalle con parcelas
+│   │   ├── lotes/                 Listado, alta, 04 · Detalle del lote
+│   │   ├── etapas/nueva/          03 · Registrar etapa
+│   │   └── qr/                    Códigos QR de todos los lotes
+│   ├── lote/[codigo]/             05 · Pasaporte digital / 07 · Alerta (públicas)
+│   │   └── recorrido/             06 · Recorrido del lote (pública)
+│   └── api/                       Endpoints (ver tabla abajo)
 ├── components/
-│   ├── ui/                      Piezas genéricas: Button, Badge, Input, Card…
-│   └── panel/                   Piezas del panel: Sidebar, TablaLotes…
+│   ├── ui/                        Piezas genéricas: Button, Badge, Input, Card…
+│   ├── panel/                     Piezas del panel: Sidebar, TablaLotes, TarjetaQr…
+│   └── publico/                   Piezas de las páginas públicas: Bloque, MapaParcela…
 ├── lib/
-│   ├── supabase/                Clientes: server (sesión), admin (service role), middleware
-│   ├── validaciones/            Esquemas Zod de cada formulario
-│   ├── acciones.ts              Estado de formularios y traducción de errores de BD
-│   ├── auth.ts                  Usuario actual y su rol
-│   ├── env.ts                   Lectura de variables de entorno con mensajes claros
-│   └── use-form-action.ts       Hook para formularios que no se vacían ante errores
-├── types/dominio.ts             Tipos de las tablas y textos para mostrar
-└── middleware.ts                Refresca la sesión y protege /panel
-supabase/migrations/             Esquema SQL con RLS
-docs/                            Esta documentación
+│   ├── trazabilidad/              Núcleo del sistema (con pruebas *.test.ts)
+│   │   ├── hash.ts                JSON canónico + SHA-256
+│   │   ├── blockchain.ts          Sellar y leer en Polygon Amoy (solo servidor)
+│   │   ├── verificacion.ts        Reglas puras: verificado / alterado / pendiente
+│   │   ├── etapas.ts              Orden de etapas y estado del lote
+│   │   ├── servicio.ts            Casos de uso: registrar, reintentar, verificar
+│   │   └── explorador.ts          Enlaces a polygonscan (seguro en el navegador)
+│   ├── supabase/                  Clientes: server (sesión), admin (service role), middleware
+│   ├── validaciones/              Esquemas Zod de cada formulario
+│   ├── qr.ts                      URL pública del lote y PNG del QR
+│   ├── api.ts                     Respuestas de error y sesión en las API routes
+│   ├── acciones.ts                Estado de formularios y traducción de errores de BD
+│   ├── auth.ts                    Usuario actual y su rol
+│   ├── env.ts                     Lectura de variables de entorno con mensajes claros
+│   └── use-form-action.ts         Hook para formularios que no se vacían ante errores
+├── types/dominio.ts               Tipos de las tablas y textos para mostrar
+└── middleware.ts                  Refresca la sesión y protege /panel
+scripts/                           wallet-nueva y wallet-saldo
+supabase/migrations/               Esquema SQL con RLS
+docs/                              Esta documentación
 ```
+
+## API
+
+| Método | Endpoint                        | Acceso  | Qué hace                                                                |
+| ------ | ------------------------------- | ------- | ----------------------------------------------------------------------- |
+| POST   | `/api/etapas`                   | Sesión  | Guarda la etapa (multipart, con evidencias), calcula el hash y la sella |
+| POST   | `/api/etapas/[id]/sellar`       | Sesión  | Reintenta el sellado; se niega si los datos cambiaron desde el registro |
+| GET    | `/api/lotes/[codigo]/verificar` | Público | Recalcula hashes, los compara con la blockchain y devuelve el resultado |
+| GET    | `/api/lotes/[codigo]/qr`        | Público | PNG del QR (`?descargar=1` lo descarga como archivo)                    |
+
+Los errores siempre responden `{ "error": "mensaje" }` con el código HTTP adecuado (401 sin sesión,
+404 lote inexistente, 409 etapa repetida, 422 validación). La creación de lotes es una Server Action
+del panel, por eso no tiene endpoint propio.
+
+## Flujo de registro de una etapa
+
+1. `EtapaForm` envía el formulario (con las fotos o PDF) a `POST /api/etapas`.
+2. La ruta comprueba la sesión y valida con Zod. La fecha del formulario se interpreta en hora de Lima.
+3. `registrarEtapa` comprueba que sea la siguiente etapa en orden y la inserta con la service role.
+4. Lee la fila guardada, calcula su hash y lo guarda. Actualiza el estado del lote.
+5. Sube las evidencias a Supabase Storage.
+6. Sella en Polygon Amoy y espera la confirmación hasta 8 segundos.
+7. El panel redirige al detalle del lote; si el sellado falló, avisa y ofrece reintentar.
 
 ## Flujo de un formulario (ejemplo: crear lote)
 
@@ -81,9 +120,23 @@ claro y la segunda es la garantía real.
 | Sellado sin smart contract                                       | Transacción a sí misma con el hash en `data`: menos código, nada que auditar |
 | Verificar contra la blockchain, no contra la columna `hash`      | La base de datos es editable; la blockchain no                               |
 | Comprobar la wallet emisora                                      | Evita que se reemplace el `tx_hash` por una transacción de otra cuenta       |
-| No esperar la confirmación del bloque en la petición             | Vercel corta las funciones lentas; existe un endpoint para reintentar        |
+| Esperar la confirmación como máximo 8 s                          | Vercel corta las funciones lentas; la verificación completa el resto         |
 | `getClaims()` / `getUser()` en el servidor, nunca `getSession()` | `getSession()` no verifica la firma del token                                |
 | `import "server-only"` en los clientes con secretos              | El build falla si alguien los importa desde el navegador                     |
+
+| Mapa con OpenStreetMap embebido | Gratis, sin claves; el mapa interactivo quedó fuera de alcance |
+| `after()` para registrar escaneos | El escaneo se guarda después de responder: no demora la página pública |
+
+## Pruebas
+
+```bash
+npm test
+```
+
+Hay 25 pruebas con Vitest sobre las piezas que no pueden fallar: el JSON canónico y el hash, las reglas
+de verificación (datos alterados, sello de otra wallet, transacción inexistente), el orden de las etapas
+y la fecha en hora de Lima. Además, el flujo sellar → leer → verificar → alterar se probó contra una
+blockchain local (Ganache con el chainId de Amoy).
 
 ## Convenciones de código
 

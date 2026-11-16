@@ -16,5 +16,5 @@ esos conceptos.
 | Día | Alcance                                                                                 | Estado    |
 | --- | --------------------------------------------------------------------------------------- | --------- |
 | 1   | Proyecto, base de datos con RLS, login, productores, parcelas, lotes y dashboard básico | ✅ Hecho  |
-| 2   | Registro de etapas, hash + sellado en Polygon Amoy, QR, páginas públicas y verificación | Pendiente |
+| 2   | Registro de etapas, hash + sellado en Polygon Amoy, QR, páginas públicas y verificación | ✅ Hecho  |
 | 3   | Dashboard completo, 3 lotes de ejemplo (uno alterado), deploy y prueba en celular       | Pendiente |

@@ -122,7 +122,7 @@ POL reales.
 | **Transacción**        | Un registro que escribimos en la blockchain. La nuestra lleva el hash de la etapa en su campo `data`.                                                                 |
 | **tx_hash**            | El identificador único de una transacción (`0x` + 64 caracteres). Lo guardamos en la tabla `etapas`.                                                                  |
 | **Gas**                | La comisión por escribir. En Amoy se paga con POL de prueba.                                                                                                          |
-| **RPC**                | La "puerta de entrada" para hablar con la blockchain desde el código. Usamos uno gratuito (Alchemy).                                                                  |
+| **RPC**                | La "puerta de entrada" para hablar con la blockchain desde el código. Por defecto usamos uno público y gratuito (publicnode); no requiere cuenta.                     |
 | **Explorador**         | Página web pública para ver cualquier transacción: [amoy.polygonscan.com](https://amoy.polygonscan.com).                                                              |
 
 ---
@@ -155,9 +155,14 @@ Detalles de diseño:
   auditar un contrato.
 - **Solo el hash sale de nuestro sistema.** Los nombres, coordenadas y pesos nunca se publican en la
   blockchain. Esto protege la privacidad de los productores y mantiene la transacción pequeña.
-- **No esperamos la confirmación** dentro de la misma petición: Vercel corta las funciones que tardan
-  demasiado. Guardamos el `tx_hash` en cuanto se envía; si algo falla, el endpoint
-  `POST /api/etapas/[id]/sellar` permite reintentar.
+- **Esperamos la confirmación como máximo 8 segundos** (Amoy suele confirmar en 2 a 5). El `tx_hash`
+  se guarda apenas se envía; si el bloque llega más tarde, la siguiente verificación completa
+  `sellado_en` sola. Si el envío falla (por ejemplo, la wallet sin saldo), la etapa queda guardada como
+  pendiente y el botón **Reintentar sellado** (`POST /api/etapas/[id]/sellar`) la vuelve a enviar.
+- **El hash se calcula con la fila ya guardada**, tal como la devuelve la base de datos. Así se usa
+  exactamente el mismo camino que después usará la verificación.
+- **Polygon exige una propina mínima** (unos 30 gwei) por transacción; el código la fija para que la red
+  no rechace el sello.
 
 ### Verificación (cuando un comprador escanea el QR)
 
@@ -170,6 +175,18 @@ Para cada etapa del lote, el servidor:
 
 Si todas las etapas coinciden, la página muestra **"Verificado"**. Si alguna no coincide, muestra la
 alerta **"Información no verificada"** (pantalla 07 del Figma).
+
+### Pruébalo tú mismo en el explorador
+
+1. En el detalle del lote, haz clic en **Sellado** en cualquier etapa. Se abre la transacción en
+   [amoy.polygonscan.com](https://amoy.polygonscan.com).
+2. En **Input Data** está el hash de la etapa (después del `0x`). Compáralo con la columna Hash del
+   panel (al pasar el mouse se ve completo).
+3. El campo **From** es la wallet de la empresa: la misma que aparece en la página pública, en
+   "Wallet emisora".
+
+Esto es lo que puede hacer cualquier comprador, sin confiar en nosotros. La API pública
+`GET /api/lotes/<codigo>/verificar` devuelve lo mismo en JSON.
 
 ### ¿Por qué no comparamos con la columna `hash` de la base de datos?
 

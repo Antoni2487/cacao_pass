@@ -54,26 +54,51 @@ Abre <http://localhost:3000>; te llevará al login.
 > `SUPABASE_SERVICE_ROLE_KEY` y `WALLET_PRIVATE_KEY` **no** llevan ese prefijo. Nunca subas
 > `.env.local` a GitHub (ya está en `.gitignore`).
 
-## 3. Wallet de prueba en Polygon Amoy (preparar antes del Día 2)
+## 3. Wallet de prueba en Polygon Amoy
 
-Consigue los POL de prueba con anticipación: algunos faucets tienen requisitos o límites diarios.
+**No hay que crear ninguna cuenta en la blockchain.** Una wallet es solo un par de claves que se genera
+en tu computadora. Lo único que puede pedirte un registro es el _faucet_ que regala las monedas de
+prueba.
 
-1. **Crea una wallet nueva solo para este proyecto.** La forma más simple, desde la carpeta del proyecto
-   una vez instalado ethers (Día 2):
+1. **Genera la wallet** desde la carpeta del proyecto:
 
    ```bash
-   node -e "const {Wallet}=require('ethers');const w=Wallet.createRandom();console.log('Dirección:',w.address);console.log('Clave privada:',w.privateKey)"
+   npm run wallet:nueva
    ```
 
-   Guarda la clave privada en `WALLET_PRIVATE_KEY` de `.env.local`. **No uses nunca una wallet con
-   dinero real.**
+   Muestra una **dirección pública** (`0x…`, se puede compartir) y una **clave privada** (secreta).
+   Copia la clave privada en `.env.local`:
 
-2. **RPC:** crea una cuenta gratuita en [Alchemy](https://www.alchemy.com), crea una app en la red
-   **Polygon Amoy** y copia la URL HTTPS en `AMOY_RPC_URL`.
-3. **Fondos de prueba:** pide POL de Amoy para la dirección de tu wallet en algún faucet, por ejemplo
-   el [faucet oficial de Polygon](https://faucet.polygon.technology) o el de Alchemy. Cada sellado
-   gasta una cantidad mínima; 0.1 POL de prueba alcanza para cientos de etapas.
-4. Comprueba el saldo buscando tu dirección en [amoy.polygonscan.com](https://amoy.polygonscan.com).
+   ```env
+   WALLET_PRIVATE_KEY=0x…
+   ```
+
+   No se guarda en ningún otro lado: si la pierdes, generas otra y vuelves a pedir fondos. **Nunca
+   uses una wallet con dinero real.**
+
+2. **RPC (conexión con la red): no hace falta configurarlo.** Si `AMOY_RPC_URL` está vacío se usa el
+   RPC público gratuito `https://polygon-amoy-bor-rpc.publicnode.com`. Si algún día falla, crea una
+   cuenta gratuita en [Alchemy](https://www.alchemy.com), una app en la red **Polygon Amoy**, y pega
+   su URL HTTPS en `AMOY_RPC_URL`.
+
+3. **Pide POL de prueba** para tu **dirección pública** (nunca pegues la clave privada en una web) en
+   alguno de estos faucets. Los requisitos cambian seguido (algunos piden iniciar sesión o tener un
+   saldo mínimo en la red real); si uno no te deja, prueba el siguiente:
+   - [Polygon](https://faucet.polygon.technology)
+   - [Alchemy](https://www.alchemy.com/faucets/polygon-amoy)
+   - [QuickNode](https://faucet.quicknode.com/polygon/amoy)
+   - [Chainlink](https://faucets.chain.link/polygon-amoy)
+
+4. **Comprueba el saldo:**
+
+   ```bash
+   npm run wallet:saldo
+   ```
+
+   Cada sellado cuesta unos 0.0007 POL de prueba, así que 0.1 POL alcanza para unas 150 etapas.
+
+Si la wallet se queda sin saldo, el registro de la etapa no se pierde: queda guardada como pendiente
+y el detalle del lote muestra el botón **Reintentar sellado**.
 
 ## 4. Despliegue en Vercel (Día 3)
 
@@ -83,8 +108,8 @@ Consigue los POL de prueba con anticipación: algunos faucets tienen requisitos 
    `NEXT_PUBLIC_SITE_URL` por la URL final (por ejemplo `https://cacaopass.vercel.app`).
 3. En **Settings → Git**, la rama de producción es `main`. Cada push a `main` despliega
    automáticamente.
-4. Importante: **genera los QR después** de fijar `NEXT_PUBLIC_SITE_URL`, porque la URL va dentro del
-   QR.
+4. Importante: la URL que va dentro del QR sale de `NEXT_PUBLIC_SITE_URL` y **se fija al compilar**.
+   Si la cambias en Vercel, vuelve a desplegar (Deployments → Redeploy) antes de imprimir los QR.
 
 ### Evitar que Supabase se pause
 

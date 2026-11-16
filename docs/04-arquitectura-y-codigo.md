@@ -3,7 +3,7 @@
 ## Vista general
 
 Es un **monolito en Next.js**: el panel, la página pública y la API se despliegan juntos en Vercel.
-Supabase es la base de datos y el login; Polygon Amoy es el "notario".
+Supabase es la base de datos y el login; Polygon es el "notario".
 
 ```mermaid
 flowchart LR
@@ -22,7 +22,7 @@ flowchart LR
     SA -- "sesión del usuario (RLS)" --> DB[(Supabase<br/>PostgreSQL)]
     SSR -- service role --> DB
     API -- service role --> DB
-    API -- "ethers.js + clave privada" --> BC[[Polygon Amoy]]
+    API -- "ethers.js + clave privada" --> BC[[Polygon]]
     SSR --> BC
 ```
 
@@ -57,10 +57,11 @@ src/
 ├── lib/
 │   ├── trazabilidad/              Núcleo del sistema (con pruebas *.test.ts)
 │   │   ├── hash.ts                JSON canónico + SHA-256
-│   │   ├── blockchain.ts          Sellar y leer en Polygon Amoy (solo servidor)
+│   │   ├── blockchain.ts          Sellar y leer en Polygon (solo servidor)
 │   │   ├── verificacion.ts        Reglas puras: verificado / alterado / pendiente
 │   │   ├── etapas.ts              Orden de etapas y estado del lote
 │   │   ├── servicio.ts            Casos de uso: registrar, reintentar, verificar
+│   │   ├── red.ts                 Redes Amoy y Polygon (NEXT_PUBLIC_RED_BLOCKCHAIN)
 │   │   └── explorador.ts          Enlaces a polygonscan (seguro en el navegador)
 │   ├── supabase/                  Clientes: server (sesión), admin (service role), middleware
 │   ├── validaciones/              Esquemas Zod de cada formulario
@@ -97,7 +98,7 @@ del panel, por eso no tiene endpoint propio.
 3. `registrarEtapa` comprueba que sea la siguiente etapa en orden y la inserta con la service role.
 4. Lee la fila guardada, calcula su hash y lo guarda. Actualiza el estado del lote.
 5. Sube las evidencias a Supabase Storage.
-6. Sella en Polygon Amoy y espera la confirmación hasta 8 segundos.
+6. Sella en Polygon y espera la confirmación hasta 8 segundos.
 7. El panel redirige al detalle del lote; si el sellado falló, avisa y ofrece reintentar.
 
 ## Flujo de un formulario (ejemplo: crear lote)

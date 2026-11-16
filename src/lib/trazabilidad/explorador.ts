@@ -1,12 +1,14 @@
+import { RED } from "./red";
+
 /** Datos públicos de la red (sin secretos): se pueden usar en cualquier componente. */
-export const RED_BLOCKCHAIN = "Polygon Amoy (testnet)";
+export const RED_BLOCKCHAIN = RED.nombre;
 
 export function urlExplorador(txHash: string) {
-  return `https://amoy.polygonscan.com/tx/${txHash}`;
+  return `${RED.explorador}/tx/${txHash}`;
 }
 
 export function urlDireccion(direccion: string) {
-  return `https://amoy.polygonscan.com/address/${direccion}`;
+  return `${RED.explorador}/address/${direccion}`;
 }
 
 /** "5041366202b8…3bcb" para mostrar hashes largos. */

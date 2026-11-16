@@ -30,7 +30,7 @@ export class ErrorTrazabilidad extends Error {
   }
 }
 
-/** Tiempo que esperamos la confirmación dentro de la petición (Amoy confirma en ~2-5 s). */
+/** Tiempo que esperamos la confirmación dentro de la petición (Polygon confirma en ~2-5 s). */
 const ESPERA_CONFIRMACION_MS = 8_000;
 
 export interface ResultadoSellado {

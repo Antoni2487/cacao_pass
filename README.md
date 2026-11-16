@@ -2,19 +2,19 @@
 
 Trazabilidad verificable del cacao peruano. Cada lote de exportación recibe un **QR** que abre su
 "pasaporte digital": origen, productor, parcela y recorrido hasta el puerto. Cada etapa del recorrido
-se **sella en blockchain** (Polygon Amoy) para demostrar que los datos no fueron alterados.
+se **sella en blockchain** (Polygon) para demostrar que los datos no fueron alterados.
 
 Demo para el curso _Innovación y Desarrollo Tecnológico_ (caso Machu Picchu Foods).
 
 ## Stack
 
-| Pieza                           | Tecnología                              |
-| ------------------------------- | --------------------------------------- |
-| Web + API                       | Next.js 15 (App Router) + TypeScript    |
-| Estilos                         | Tailwind CSS 4                          |
-| Base de datos, login y archivos | Supabase (PostgreSQL + Auth + Storage)  |
-| Blockchain                      | Polygon Amoy (testnet) con ethers.js v6 |
-| Despliegue                      | Vercel                                  |
+| Pieza                           | Tecnología                             |
+| ------------------------------- | -------------------------------------- |
+| Web + API                       | Next.js 15 (App Router) + TypeScript   |
+| Estilos                         | Tailwind CSS 4                         |
+| Base de datos, login y archivos | Supabase (PostgreSQL + Auth + Storage) |
+| Blockchain                      | Polygon PoS con ethers.js v6 (o Amoy)  |
+| Despliegue                      | Vercel                                 |
 
 ## Instalación local
 
@@ -40,7 +40,7 @@ La configuración de Supabase (tablas, usuarios y roles) está en
 | `npm run lint`         | ESLint                                           |
 | `npm run typecheck`    | Revisión de tipos de TypeScript                  |
 | `npm test`             | Pruebas automáticas (hash, verificación, etapas) |
-| `npm run wallet:nueva` | Genera una wallet de prueba para Polygon Amoy    |
+| `npm run wallet:nueva` | Genera la wallet que sella en Polygon            |
 | `npm run wallet:saldo` | Muestra el saldo de la wallet configurada        |
 | `npm run format`       | Formatea el código con Prettier                  |
 

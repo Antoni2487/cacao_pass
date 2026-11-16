@@ -1,32 +1,37 @@
 import "server-only";
 import { JsonRpcProvider, Wallet, parseUnits, type Provider } from "ethers";
 
+import { RED } from "./red";
+
 /**
- * Acceso a Polygon Amoy (testnet). Ver docs/01-conceptos-blockchain.md.
+ * Acceso a Polygon (Amoy o la red principal, según NEXT_PUBLIC_RED_BLOCKCHAIN).
+ * Ver docs/01-conceptos-blockchain.md.
  *
  * Sellar = enviar una transacción de 0 POL de nuestra wallet a sí misma con el
  * hash de la etapa en el campo `data`. No hay smart contract.
  */
 
-const CHAIN_ID_AMOY = 80002;
-/** RPC público gratuito (publicnode), funciona sin cuenta. Para más estabilidad usa Alchemy en AMOY_RPC_URL. */
-const RPC_PUBLICO_AMOY = "https://polygon-amoy-bor-rpc.publicnode.com";
 /** Polygon rechaza transacciones con propina menor a ~25-30 gwei. */
 const PROPINA_MINIMA = parseUnits("30", "gwei");
 
 let proveedor: JsonRpcProvider | undefined;
 let wallet: Wallet | undefined;
 
+/** RPC_URL manda; AMOY_RPC_URL se acepta por compatibilidad solo en Amoy. */
+function urlRpc(): string {
+  const propia =
+    process.env.RPC_URL?.trim() || (RED.id === "amoy" ? process.env.AMOY_RPC_URL?.trim() : "");
+  return propia || RED.rpcPublico;
+}
+
 function obtenerProveedor(): Provider {
   if (!proveedor) {
-    const url = process.env.AMOY_RPC_URL?.trim() || RPC_PUBLICO_AMOY;
+    const url = urlRpc();
     if (/[<>]/.test(url)) {
-      throw new Error(
-        "AMOY_RPC_URL tiene el texto de ejemplo <api-key>: déjala vacía o pon tu clave.",
-      );
+      throw new Error("RPC_URL tiene el texto de ejemplo <api-key>: déjala vacía o pon tu clave.");
     }
     // staticNetwork evita una consulta extra en cada petición para detectar la red.
-    proveedor = new JsonRpcProvider(url, CHAIN_ID_AMOY, { staticNetwork: true });
+    proveedor = new JsonRpcProvider(url, RED.chainId, { staticNetwork: true });
   }
   return proveedor;
 }

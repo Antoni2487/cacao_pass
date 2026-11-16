@@ -14,12 +14,6 @@ const RPC_PUBLICO_AMOY = "https://polygon-amoy-bor-rpc.publicnode.com";
 /** Polygon rechaza transacciones con propina menor a ~25-30 gwei. */
 const PROPINA_MINIMA = parseUnits("30", "gwei");
 
-export const RED_BLOCKCHAIN = "Polygon Amoy (testnet)";
-
-export function urlExplorador(txHash: string) {
-  return `https://amoy.polygonscan.com/tx/${txHash}`;
-}
-
 let proveedor: JsonRpcProvider | undefined;
 let wallet: Wallet | undefined;
 

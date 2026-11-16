@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CircleCheck, MapPin, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CircleCheck, Link2, MapPin, TriangleAlert } from "lucide-react";
 import { EstadoLoteBadge } from "@/components/panel/estado-lote";
+import { ReintentarSellado } from "@/components/panel/reintentar-sellado";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { urlExplorador } from "@/lib/trazabilidad/explorador";
 import { Card, CardHeader, EstadoVacio } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { crearClienteServidor } from "@/lib/supabase/server";
@@ -33,8 +36,14 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: React.ReactNode })
   );
 }
 
-export default async function LotePage({ params }: { params: Promise<{ codigo: string }> }) {
-  const { codigo } = await params;
+export default async function LotePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ codigo: string }>;
+  searchParams: Promise<{ sellado?: string }>;
+}) {
+  const [{ codigo }, { sellado }] = await Promise.all([params, searchParams]);
   const supabase = await crearClienteServidor();
 
   const { data: lote } = await supabase
@@ -58,8 +67,26 @@ export default async function LotePage({ params }: { params: Promise<{ codigo: s
       <PageHeader
         titulo={`Lote ${lote.codigo}`}
         subtitulo={`${lote.variedad} · ${formatearNumero(lote.peso_kg)} kg · Destino: ${lote.destino}`}
-        acciones={<EstadoLoteBadge estado={lote.estado} />}
+        acciones={
+          <>
+            <EstadoLoteBadge estado={lote.estado} />
+            {lote.etapas.length < 5 && (
+              <ButtonLink href={`/panel/etapas/nueva?lote=${lote.codigo}`}>
+                Registrar etapa
+              </ButtonLink>
+            )}
+          </>
+        }
       />
+
+      {sellado === "fallido" && (
+        <p
+          role="alert"
+          className="mb-6 rounded-xl bg-aviso-50 px-4 py-3 text-sm font-medium text-aviso-700"
+        >
+          La etapa se guardó, pero no se pudo sellar en blockchain. Usa “Reintentar sellado”.
+        </p>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="flex flex-col gap-6">
@@ -131,10 +158,17 @@ export default async function LotePage({ params }: { params: Promise<{ codigo: s
                         {etapa.ubicacion} · {formatearFecha(etapa.fecha)}
                       </p>
                     </div>
-                    {etapa.sellado_en ? (
-                      <Badge tono="exito">Sellado</Badge>
+                    {etapa.sellado_en && etapa.tx_hash ? (
+                      <a
+                        href={urlExplorador(etapa.tx_hash)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-exito-700 hover:underline"
+                      >
+                        <Link2 className="size-3.5" aria-hidden /> Sellado
+                      </a>
                     ) : (
-                      <Badge tono="aviso">Pendiente</Badge>
+                      <ReintentarSellado etapaId={etapa.id} />
                     )}
                   </li>
                 ))}

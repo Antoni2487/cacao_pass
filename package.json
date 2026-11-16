@@ -11,7 +11,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "wallet:nueva": "node scripts/wallet-nueva.mjs",
+    "wallet:saldo": "node --env-file-if-exists=.env.local scripts/wallet-saldo.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

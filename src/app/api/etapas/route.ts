@@ -8,7 +8,7 @@ export const maxDuration = 30;
 
 /**
  * POST /api/etapas (multipart/form-data)
- * Guarda la etapa, calcula su hash SHA-256 y la sella en Polygon Amoy.
+ * Guarda la etapa, calcula su hash SHA-256 y la sella en Polygon (Amoy o red principal).
  * Campos: lote_codigo, tipo, ubicacion, fecha, peso_kg?, humedad_pct?, notas?, evidencias[]?
  */
 export async function POST(request: Request) {

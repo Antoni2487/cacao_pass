@@ -278,7 +278,8 @@ function TarjetaIntegridad({ resultado }: { resultado: LoteVerificado }) {
     alterado: `La etapa “${alterada ? ETIQUETAS.tipoEtapa[alterada.tipo] : ""}” no coincide. ${alterada?.motivo ?? ""} La página pública muestra la alerta.`,
     pendiente: "Hay etapas sin confirmar en blockchain. Reintenta el sellado si no avanza.",
     sin_etapas: "Registra la primera etapa para empezar el recorrido.",
-    error_red: "No se pudo consultar la blockchain. Revisa AMOY_RPC_URL y WALLET_PRIVATE_KEY.",
+    error_red:
+      "No se pudo consultar la blockchain. Revisa RPC_URL, NEXT_PUBLIC_RED_BLOCKCHAIN y WALLET_PRIVATE_KEY.",
   }[resultado.estado];
 
   return (

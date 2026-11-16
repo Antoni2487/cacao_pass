@@ -102,18 +102,25 @@ blockchain es un notario que no depende de una sola persona ni de una sola empre
 
 ---
 
-## 3. Polygon, Amoy y "testnet"
+## 3. Polygon, Amoy y la red principal
 
 - **Ethereum** es la blockchain pública más conocida para este uso. Escribir en ella cuesta dinero (una
   comisión llamada _gas_).
-- **Polygon** es una red compatible con Ethereum, mucho más rápida y barata.
+- **Polygon** es una red compatible con Ethereum, mucho más rápida y barata. Su red principal
+  (_mainnet_) se llama **Polygon PoS** y su moneda es el **POL**.
 - **Amoy** es la **red de pruebas (testnet)** de Polygon. Funciona igual que la real, pero sus monedas
-  (POL de prueba) **no tienen valor**: se obtienen gratis en un _faucet_ (una página que regala monedas
-  de prueba).
+  (POL de prueba) **no tienen valor**: se obtienen en un _faucet_ (una página que regala monedas de
+  prueba).
 
-Usamos Amoy porque el proyecto es una demo: el costo es cero y técnicamente es idéntico a usar la red
-principal (_mainnet_). Pasar a producción consistiría en cambiar la URL del RPC y usar una wallet con
-POL reales.
+**CacaoPass sella en la red principal de Polygon.** Los faucets de Amoy empezaron a exigir saldo en la
+red real de Ethereum para evitar abusos, así que conseguir POL de prueba dejó de ser gratis. En la red
+principal cada sello cuesta unos **0.006 POL** (medido en noviembre de 2026; el costo en soles depende del precio del
+POL): con 2 POL alcanza para más de 150 etapas. A cambio, los sellos quedan en la blockchain pública
+real, la misma que usan aplicaciones en producción.
+
+La red se elige con la variable `NEXT_PUBLIC_RED_BLOCKCHAIN` (`polygon` o `amoy`); el código es el
+mismo para las dos. **No cambies de red cuando ya hay etapas selladas**: sus transacciones quedan en la
+red anterior y la verificación no las encontraría.
 
 | Término                | Qué significa aquí                                                                                                                                                    |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -121,9 +128,9 @@ POL reales.
 | **Clave privada**      | Permite firmar transacciones a nombre de la wallet. **Quien la tenga controla la cuenta.** Vive solo en las variables de entorno del servidor (`WALLET_PRIVATE_KEY`). |
 | **Transacción**        | Un registro que escribimos en la blockchain. La nuestra lleva el hash de la etapa en su campo `data`.                                                                 |
 | **tx_hash**            | El identificador único de una transacción (`0x` + 64 caracteres). Lo guardamos en la tabla `etapas`.                                                                  |
-| **Gas**                | La comisión por escribir. En Amoy se paga con POL de prueba.                                                                                                          |
+| **Gas**                | La comisión por escribir. Se paga en POL desde la wallet que sella.                                                                                                   |
 | **RPC**                | La "puerta de entrada" para hablar con la blockchain desde el código. Por defecto usamos uno público y gratuito (publicnode); no requiere cuenta.                     |
-| **Explorador**         | Página web pública para ver cualquier transacción: [amoy.polygonscan.com](https://amoy.polygonscan.com).                                                              |
+| **Explorador**         | Página web pública para ver cualquier transacción: [polygonscan.com](https://polygonscan.com) (en Amoy, amoy.polygonscan.com).                                        |
 
 ---
 
@@ -136,7 +143,7 @@ sequenceDiagram
     participant O as Operador (panel)
     participant API as Servidor (Next.js)
     participant BD as Supabase
-    participant BC as Polygon Amoy
+    participant BC as Polygon
 
     O->>API: Registrar etapa (ubicación, fecha, humedad…)
     API->>API: Arma el JSON canónico y calcula SHA-256
@@ -155,7 +162,7 @@ Detalles de diseño:
   auditar un contrato.
 - **Solo el hash sale de nuestro sistema.** Los nombres, coordenadas y pesos nunca se publican en la
   blockchain. Esto protege la privacidad de los productores y mantiene la transacción pequeña.
-- **Esperamos la confirmación como máximo 8 segundos** (Amoy suele confirmar en 2 a 5). El `tx_hash`
+- **Esperamos la confirmación como máximo 8 segundos** (Polygon suele confirmar en 2 a 5). El `tx_hash`
   se guarda apenas se envía; si el bloque llega más tarde, la siguiente verificación completa
   `sellado_en` sola. Si el envío falla (por ejemplo, la wallet sin saldo), la etapa queda guardada como
   pendiente y el botón **Reintentar sellado** (`POST /api/etapas/[id]/sellar`) la vuelve a enviar.
@@ -179,7 +186,7 @@ alerta **"Información no verificada"** (pantalla 07 del Figma).
 ### Pruébalo tú mismo en el explorador
 
 1. En el detalle del lote, haz clic en **Sellado** en cualquier etapa. Se abre la transacción en
-   [amoy.polygonscan.com](https://amoy.polygonscan.com).
+   [polygonscan.com](https://polygonscan.com).
 2. En **Input Data** está el hash de la etapa (después del `0x`). Compáralo con la columna Hash del
    panel (al pasar el mouse se ve completo).
 3. El campo **From** es la wallet de la empresa: la misma que aparece en la página pública, en
@@ -238,8 +245,8 @@ nadie.
 No. Solo un hash de 64 caracteres. A partir del hash no se pueden reconstruir los datos.
 
 **¿Cuánto cuesta?**
-En la demo, cero: usamos la red de pruebas Amoy. En la red real de Polygon, sellar una etapa cuesta una
-fracción de centavo de dólar.
+Unos 0.006 POL por etapa en la red principal de Polygon (noviembre de 2026). Toda la demo
+(3 lotes de ejemplo y pruebas) cabe en 1-2 POL.
 
 **¿El comprador necesita saber de blockchain o tener una wallet?**
 No. Escanea el QR con la cámara del celular y ve "Verificado" o la alerta. Si quiere, puede abrir el

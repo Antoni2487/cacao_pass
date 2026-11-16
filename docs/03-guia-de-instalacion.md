@@ -54,13 +54,20 @@ Abre <http://localhost:3000>; te llevará al login.
 > `SUPABASE_SERVICE_ROLE_KEY` y `WALLET_PRIVATE_KEY` **no** llevan ese prefijo. Nunca subas
 > `.env.local` a GitHub (ya está en `.gitignore`).
 
-## 3. Wallet de prueba en Polygon Amoy
+## 3. Wallet para sellar en Polygon
 
 **No hay que crear ninguna cuenta en la blockchain.** Una wallet es solo un par de claves que se genera
-en tu computadora. Lo único que puede pedirte un registro es el _faucet_ que regala las monedas de
-prueba.
+en tu computadora. Lo único que necesita es un poco de POL para pagar el gas de cada sello.
 
-1. **Genera la wallet** desde la carpeta del proyecto:
+1. **Elige la red** en `.env.local`:
+
+   ```env
+   NEXT_PUBLIC_RED_BLOCKCHAIN=polygon   # red principal (POL real). Usa "amoy" para la red de prueba.
+   ```
+
+   No la cambies después de sellar etapas: sus sellos quedan en la red anterior.
+
+2. **Genera la wallet** desde la carpeta del proyecto (si ya tienes una, sáltate este paso):
 
    ```bash
    npm run wallet:nueva
@@ -73,29 +80,31 @@ prueba.
    WALLET_PRIVATE_KEY=0x…
    ```
 
-   No se guarda en ningún otro lado: si la pierdes, generas otra y vuelves a pedir fondos. **Nunca
-   uses una wallet con dinero real.**
+   No se guarda en ningún otro lado: si la pierdes, pierdes también el POL que tenga. Guárdala en un
+   lugar seguro (por ejemplo, un gestor de contraseñas). **Quien tenga la clave privada controla el
+   saldo:** nunca la pegues en una web, la compartas ni la subas a GitHub. Mantén en esta wallet solo
+   unos pocos POL.
 
-2. **RPC (conexión con la red): no hace falta configurarlo.** Si `AMOY_RPC_URL` está vacío se usa el
-   RPC público gratuito `https://polygon-amoy-bor-rpc.publicnode.com`. Si algún día falla, crea una
-   cuenta gratuita en [Alchemy](https://www.alchemy.com), una app en la red **Polygon Amoy**, y pega
-   su URL HTTPS en `AMOY_RPC_URL`.
+3. **RPC (conexión con la red): no hace falta configurarlo.** Si `RPC_URL` está vacío se usa el RPC
+   público gratuito de publicnode para la red elegida. Si algún día falla, crea una cuenta gratuita en
+   [Alchemy](https://www.alchemy.com), una app en la misma red (**Polygon Mainnet** o **Polygon
+   Amoy**), y pega su URL HTTPS en `RPC_URL`.
 
-3. **Pide POL de prueba** para tu **dirección pública** (nunca pegues la clave privada en una web) en
-   alguno de estos faucets. Los requisitos cambian seguido (algunos piden iniciar sesión o tener un
-   saldo mínimo en la red real); si uno no te deja, prueba el siguiente:
-   - [Polygon](https://faucet.polygon.technology)
-   - [Alchemy](https://www.alchemy.com/faucets/polygon-amoy)
-   - [QuickNode](https://faucet.quicknode.com/polygon/amoy)
-   - [Chainlink](https://faucets.chain.link/polygon-amoy)
+4. **Carga POL en tu dirección pública.**
+   - **Red principal (`polygon`):** compra 1-2 POL en un exchange (Binance, por ejemplo) y retíralos a
+     la dirección pública. **Al retirar, elige la red "Polygon" / "Polygon PoS"**, nunca "Ethereum
+     (ERC-20)": por esa red el POL llega a otra blockchain y la app no lo ve. Cada sello cuesta unos
+     0.006 POL (noviembre de 2026), así que 2 POL alcanzan para más de 150 etapas.
+   - **Red de prueba (`amoy`):** pide POL de prueba en un faucet ([Polygon](https://faucet.polygon.technology),
+     [Alchemy](https://www.alchemy.com/faucets/polygon-amoy),
+     [QuickNode](https://faucet.quicknode.com/polygon/amoy)). Hoy la mayoría exige tener saldo en la
+     red real de Ethereum.
 
-4. **Comprueba el saldo:**
+5. **Comprueba el saldo:**
 
    ```bash
    npm run wallet:saldo
    ```
-
-   Cada sellado cuesta unos 0.0007 POL de prueba, así que 0.1 POL alcanza para unas 150 etapas.
 
 Si la wallet se queda sin saldo, el registro de la etapa no se pierde: queda guardada como pendiente
 y el detalle del lote muestra el botón **Reintentar sellado**.
@@ -110,6 +119,7 @@ y el detalle del lote muestra el botón **Reintentar sellado**.
    automáticamente.
 4. Importante: la URL que va dentro del QR sale de `NEXT_PUBLIC_SITE_URL` y **se fija al compilar**.
    Si la cambias en Vercel, vuelve a desplegar (Deployments → Redeploy) antes de imprimir los QR.
+   Lo mismo con `NEXT_PUBLIC_RED_BLOCKCHAIN`: debe ser `polygon` en Vercel y se fija al compilar.
 
 ### Evitar que Supabase se pause
 

@@ -50,6 +50,11 @@ export function direccionWallet(): string {
   return obtenerWallet().address;
 }
 
+/** Saldo de la wallet que sella, en wei (1 POL = 10^18 wei). */
+export async function saldoWallet(): Promise<bigint> {
+  return obtenerProveedor().getBalance(direccionWallet());
+}
+
 /** Envía el hash a la blockchain y devuelve el tx_hash sin esperar la confirmación. */
 export async function sellarHash(hash: string): Promise<string> {
   if (!/^[0-9a-f]{64}$/.test(hash)) throw new Error("Hash no válido.");

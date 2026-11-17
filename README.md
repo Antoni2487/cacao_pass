@@ -33,16 +33,17 @@ La configuración de Supabase (tablas, usuarios y roles) está en
 
 ## Scripts
 
-| Comando                | Qué hace                                         |
-| ---------------------- | ------------------------------------------------ |
-| `npm run dev`          | Servidor de desarrollo                           |
-| `npm run build`        | Compilación de producción                        |
-| `npm run lint`         | ESLint                                           |
-| `npm run typecheck`    | Revisión de tipos de TypeScript                  |
-| `npm test`             | Pruebas automáticas (hash, verificación, etapas) |
-| `npm run wallet:nueva` | Genera la wallet que sella en Polygon            |
-| `npm run wallet:saldo` | Muestra el saldo de la wallet configurada        |
-| `npm run format`       | Formatea el código con Prettier                  |
+| Comando                 | Qué hace                                         |
+| ----------------------- | ------------------------------------------------ |
+| `npm run dev`           | Servidor de desarrollo                           |
+| `npm run build`         | Compilación de producción                        |
+| `npm run lint`          | ESLint                                           |
+| `npm run typecheck`     | Revisión de tipos de TypeScript                  |
+| `npm test`              | Pruebas automáticas (hash, verificación, etapas) |
+| `npm run wallet:nueva`  | Genera la wallet que sella en Polygon            |
+| `npm run wallet:saldo`  | Muestra el saldo de la wallet configurada        |
+| `npm run lotes:ejemplo` | Crea y sella los 3 lotes de demo (uno alterado)  |
+| `npm run format`        | Formatea el código con Prettier                  |
 
 ## Flujo de trabajo (Git Flow)
 

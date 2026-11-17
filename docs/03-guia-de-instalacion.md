@@ -109,6 +109,31 @@ en tu computadora. Lo único que necesita es un poco de POL para pagar el gas de
 Si la wallet se queda sin saldo, el registro de la etapa no se pierde: queda guardada como pendiente
 y el detalle del lote muestra el botón **Reintentar sellado**.
 
+### Lotes de ejemplo para la demo
+
+Con la wallet cargada, un comando crea 3 productores, sus parcelas y 3 lotes, y sella cada etapa en
+blockchain (13 sellos, unos 0.08 POL):
+
+```bash
+npm run lotes:ejemplo
+```
+
+| Lote                                  | Qué muestra la página pública del QR                         |
+| ------------------------------------- | ------------------------------------------------------------ |
+| Familia Huamán Torres (5 etapas)      | **Verificado**, recorrido completo hasta el Callao           |
+| Cooperativa Agraria Selva Central (3) | **Verificado**, lote en tránsito                             |
+| Asociación Cacao Fino Quillabamba (5) | **Alerta**: el peso del acopio se cambió después del sellado |
+
+El tercero se altera a propósito: después de sellarlo, el script cambia el peso del acopio de 810 a
+950 kg directo en la base de datos, sin volver a sellar. Es exactamente lo que haría alguien que
+manipula los registros, y la verificación lo detecta.
+
+- Antes de empezar revisa el saldo y se detiene si no alcanza, sin crear nada.
+- Si los lotes ya existen no hace nada. `npm run lotes:ejemplo -- --reiniciar` los borra y los vuelve
+  a crear; `-- --borrar` solo los borra. Los sellos anteriores siguen en la blockchain (son
+  permanentes), pero ya no apuntan a ningún lote.
+- Carga los lotes **un día antes de la exposición** y prueba los 3 QR desde el celular.
+
 ## 4. Despliegue en Vercel (Día 3)
 
 1. Entra a [vercel.com](https://vercel.com) con tu cuenta de GitHub e importa el repositorio

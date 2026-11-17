@@ -61,6 +61,7 @@ src/
 │   │   ├── verificacion.ts        Reglas puras: verificado / alterado / pendiente
 │   │   ├── etapas.ts              Orden de etapas y estado del lote
 │   │   ├── servicio.ts            Casos de uso: registrar, reintentar, verificar
+│   │   ├── resumen.ts             Conteo de lotes verificados / alterados para el dashboard
 │   │   ├── red.ts                 Redes Amoy y Polygon (NEXT_PUBLIC_RED_BLOCKCHAIN)
 │   │   └── explorador.ts          Enlaces a polygonscan (seguro en el navegador)
 │   ├── supabase/                  Clientes: server (sesión), admin (service role), middleware
@@ -101,6 +102,14 @@ del panel, por eso no tiene endpoint propio.
 6. Sella en Polygon y espera la confirmación hasta 8 segundos.
 7. El panel redirige al detalle del lote; si el sellado falló, avisa y ofrece reintentar.
 
+## Alertas del dashboard
+
+La tarjeta **Alertas de integridad** y el panel **Integridad en blockchain** llaman a
+`resumenIntegridad()`: una sola consulta trae los 100 lotes más recientes con sus etapas, cada etapa se
+compara con su sello en la blockchain (igual que la página pública) y `resumirVerificaciones()` cuenta
+verificados, alterados y pendientes. Como esa comprobación tarda unos segundos, va dentro de
+`<Suspense>`: los demás indicadores se muestran al instante y las alertas aparecen cuando terminan.
+
 ## Flujo de un formulario (ejemplo: crear lote)
 
 1. `LoteForm` (componente de cliente) envía el formulario con `useFormAction`.
@@ -114,19 +123,19 @@ claro y la segunda es la garantía real.
 
 ## Decisiones técnicas
 
-| Decisión                                                         | Motivo                                                                       |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Next.js con App Router                                           | Panel, página pública y API en un solo proyecto y un solo despliegue         |
-| Supabase                                                         | PostgreSQL + login + archivos en un plan gratuito; RLS para la seguridad     |
-| Sellado sin smart contract                                       | Transacción a sí misma con el hash en `data`: menos código, nada que auditar |
-| Verificar contra la blockchain, no contra la columna `hash`      | La base de datos es editable; la blockchain no                               |
-| Comprobar la wallet emisora                                      | Evita que se reemplace el `tx_hash` por una transacción de otra cuenta       |
-| Esperar la confirmación como máximo 8 s                          | Vercel corta las funciones lentas; la verificación completa el resto         |
-| `getClaims()` / `getUser()` en el servidor, nunca `getSession()` | `getSession()` no verifica la firma del token                                |
-| `import "server-only"` en los clientes con secretos              | El build falla si alguien los importa desde el navegador                     |
-
-| Mapa con OpenStreetMap embebido | Gratis, sin claves; el mapa interactivo quedó fuera de alcance |
-| `after()` para registrar escaneos | El escaneo se guarda después de responder: no demora la página pública |
+| Decisión                                                         | Motivo                                                                                       |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Next.js con App Router                                           | Panel, página pública y API en un solo proyecto y un solo despliegue                         |
+| Supabase                                                         | PostgreSQL + login + archivos en un plan gratuito; RLS para la seguridad                     |
+| Sellado sin smart contract                                       | Transacción a sí misma con el hash en `data`: menos código, nada que auditar                 |
+| Verificar contra la blockchain, no contra la columna `hash`      | La base de datos es editable; la blockchain no                                               |
+| Comprobar la wallet emisora                                      | Evita que se reemplace el `tx_hash` por una transacción de otra cuenta                       |
+| Esperar la confirmación como máximo 8 s                          | Vercel corta las funciones lentas; la verificación completa el resto                         |
+| `getClaims()` / `getUser()` en el servidor, nunca `getSession()` | `getSession()` no verifica la firma del token                                                |
+| `import "server-only"` en los clientes con secretos              | El build falla si alguien los importa desde el navegador                                     |
+| Mapa con OpenStreetMap embebido                                  | Gratis, sin claves; el mapa interactivo quedó fuera de alcance                               |
+| `after()` para registrar escaneos                                | El escaneo se guarda después de responder: no demora la página pública                       |
+| Alertas del dashboard verificadas en vivo con `<Suspense>`       | El conteo sale de la blockchain, no de una columna editable; el resto de la página no espera |
 
 ## Pruebas
 
@@ -134,9 +143,9 @@ claro y la segunda es la garantía real.
 npm test
 ```
 
-Hay 25 pruebas con Vitest sobre las piezas que no pueden fallar: el JSON canónico y el hash, las reglas
+Hay 32 pruebas con Vitest sobre las piezas que no pueden fallar: el JSON canónico y el hash, las reglas
 de verificación (datos alterados, sello de otra wallet, transacción inexistente), el orden de las etapas
-y la fecha en hora de Lima. Además, el flujo sellar → leer → verificar → alterar se probó contra una
+y la fecha en hora de Lima, la elección de red y el resumen de alertas del dashboard. Además, el flujo sellar → leer → verificar → alterar se probó contra una
 blockchain local (Ganache con el chainId de Amoy).
 
 ## Convenciones de código

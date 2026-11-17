@@ -7,6 +7,7 @@ import type { Etapa, Lote, Parcela, Productor } from "@/types/dominio";
 import { direccionWallet, esperarConfirmacion, leerSello, sellarHash } from "./blockchain";
 import { datosDeCalidad, estadoLoteTrasEtapa, ordenDeEtapa, siguienteEtapa } from "./etapas";
 import { calcularHashEtapa } from "./hash";
+import { resumirVerificaciones, type ResumenIntegridad } from "./resumen";
 import {
   estadoDelLote,
   evaluarEtapa,
@@ -234,22 +235,34 @@ export const verificarLote = cache(async (codigo: string): Promise<LoteVerificad
   const db = crearClienteAdmin();
   const { data: fila } = await db
     .from("lotes")
-    .select("*, productores(*), parcelas(*), etapas(*, evidencias(url, tipo))")
+    .select(SELECT_LOTE_COMPLETO)
     .eq("codigo", codigo)
     .order("orden", { referencedTable: "etapas" })
     .maybeSingle<FilaLoteCompleto>();
   if (!fila) return null;
 
-  const { etapas, ...lote } = fila;
-  let wallet: string | null = null;
-  let errorRed = false;
+  return verificarFila(db, fila, walletOError());
+});
 
+const SELECT_LOTE_COMPLETO = "*, productores(*), parcelas(*), etapas(*, evidencias(url, tipo))";
+
+/** Dirección de nuestra wallet, o null si WALLET_PRIVATE_KEY no está bien configurada. */
+function walletOError(): string | null {
   try {
-    wallet = direccionWallet();
+    return direccionWallet();
   } catch (error) {
     console.error("[verificacion] wallet no configurada", error);
-    errorRed = true;
+    return null;
   }
+}
+
+async function verificarFila(
+  db: ReturnType<typeof crearClienteAdmin>,
+  fila: FilaLoteCompleto,
+  wallet: string | null,
+): Promise<LoteVerificado> {
+  const { etapas, ...lote } = fila;
+  let errorRed = wallet === null;
 
   const verificadas = await Promise.all(
     etapas.map(async (etapa): Promise<EtapaVerificada> => {
@@ -295,7 +308,35 @@ export const verificarLote = cache(async (codigo: string): Promise<LoteVerificad
     wallet,
     verificadoEn: new Date().toISOString(),
   };
-});
+}
+
+// ---------------------------------------------------------------------------
+// Resumen de integridad para el dashboard
+// ---------------------------------------------------------------------------
+
+/** Máximo de lotes que el dashboard verifica en cada carga. */
+const LIMITE_RESUMEN = 100;
+
+/**
+ * Verifica contra la blockchain los lotes más recientes (una sola consulta a la
+ * base de datos y una lectura de la blockchain por etapa sellada).
+ */
+export async function resumenIntegridad(): Promise<ResumenIntegridad> {
+  const db = crearClienteAdmin();
+  const { data, count, error } = await db
+    .from("lotes")
+    .select(SELECT_LOTE_COMPLETO, { count: "exact" })
+    .order("updated_at", { ascending: false })
+    .order("orden", { referencedTable: "etapas" })
+    .limit(LIMITE_RESUMEN)
+    .returns<FilaLoteCompleto[]>();
+  if (error) throw error;
+
+  const wallet = walletOError();
+  const lotes = await Promise.all((data ?? []).map((fila) => verificarFila(db, fila, wallet)));
+
+  return resumirVerificaciones(lotes, count ?? lotes.length);
+}
 
 /** RF14: guarda un escaneo del QR para las estadísticas. Nunca rompe la página. */
 export async function registrarEscaneo(

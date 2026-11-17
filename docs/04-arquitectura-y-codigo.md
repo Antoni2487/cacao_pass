@@ -81,12 +81,13 @@ docs/                              Esta documentación
 
 ## API
 
-| Método | Endpoint                        | Acceso  | Qué hace                                                                |
-| ------ | ------------------------------- | ------- | ----------------------------------------------------------------------- |
-| POST   | `/api/etapas`                   | Sesión  | Guarda la etapa (multipart, con evidencias), calcula el hash y la sella |
-| POST   | `/api/etapas/[id]/sellar`       | Sesión  | Reintenta el sellado; se niega si los datos cambiaron desde el registro |
-| GET    | `/api/lotes/[codigo]/verificar` | Público | Recalcula hashes, los compara con la blockchain y devuelve el resultado |
-| GET    | `/api/lotes/[codigo]/qr`        | Público | PNG del QR (`?descargar=1` lo descarga como archivo)                    |
+| Método | Endpoint                        | Acceso        | Qué hace                                                                |
+| ------ | ------------------------------- | ------------- | ----------------------------------------------------------------------- |
+| POST   | `/api/etapas`                   | Sesión        | Guarda la etapa (multipart, con evidencias), calcula el hash y la sella |
+| POST   | `/api/etapas/[id]/sellar`       | Sesión        | Reintenta el sellado; se niega si los datos cambiaron desde el registro |
+| GET    | `/api/lotes/[codigo]/verificar` | Público       | Recalcula hashes, los compara con la blockchain y devuelve el resultado |
+| GET    | `/api/lotes/[codigo]/qr`        | Público       | PNG del QR (`?descargar=1` lo descarga como archivo)                    |
+| GET    | `/api/cron/mantener-activo`     | `CRON_SECRET` | Cron diario de Vercel: consulta liviana para que Supabase no se pause   |
 
 Los errores siempre responden `{ "error": "mensaje" }` con el código HTTP adecuado (401 sin sesión,
 404 lote inexistente, 409 etapa repetida, 422 validación). La creación de lotes es una Server Action

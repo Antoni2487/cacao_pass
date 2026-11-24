@@ -41,7 +41,7 @@ export default async function ProductoresPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
-              <thead className="border-b border-borde bg-crema text-left text-xs font-semibold text-tenue uppercase">
+              <thead className="border-b border-borde bg-crema text-left text-xs font-semibold text-tenue">
                 <tr>
                   <th className="px-6 py-3">Productor</th>
                   <th className="px-6 py-3">Tipo</th>

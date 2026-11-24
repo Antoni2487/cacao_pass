@@ -1,32 +1,89 @@
 @import "tailwindcss";
 
 /*
- * Tokens de diseño tomados del Figma "Trazabilidad QR - Blockchain".
- * Uso en Tailwind: bg-cacao-700, text-tinta, border-borde, etc.
+ * Tokens de diseño de CacaoPass. Los colores salen del propio cacao:
+ * la mazorca madura (oro), el grano fresco (violeta), el grano tostado
+ * (chocolate) y la hoja (verde). Uso en Tailwind: bg-cacao-700, text-tinta…
  */
+/* `inline`: las variables de next/font viven en <body>, no en :root. */
+@theme inline {
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-spectral), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Chocolate y cacao */
+  --color-cacao-950: #1a100c;
+  --color-cacao-900: #241712; /* sidebar, superficies oscuras */
+  --color-cacao-800: #38241b; /* hover en superficies oscuras */
+  --color-cacao-700: #6b3a22; /* botón primario, ítem activo */
+  --color-cacao-600: #84492b; /* hover del primario */
+  --color-cacao-200: #e8d6c8;
+  --color-cacao-100: #f3e9e0; /* fondos suaves */
 
-  --color-cacao-900: #231915; /* sidebar */
-  --color-cacao-800: #3a2a23; /* hover sidebar, tarjeta de usuario */
-  --color-cacao-700: #7a4528; /* botón primario, ítem activo */
-  --color-cacao-600: #8f5533; /* hover del primario */
-  --color-cacao-100: #f6ebe4; /* fondos suaves (badge registrado) */
+  /* Mazorca madura: sellos y detalles */
+  --color-mazorca-500: #c8901e;
+  --color-mazorca-300: #e9c46a;
+  --color-mazorca-100: #f8edd2;
 
-  --color-crema: #f8f6f3; /* fondo de página */
-  --color-borde: #ebe6e1;
-  --color-tinta: #1f1714; /* texto principal */
-  --color-tenue: #6b6461; /* texto secundario */
+  /* Grano fresco: guilloche del pasaporte */
+  --color-grano-700: #5a2747;
+  --color-grano-100: #f1e6ec;
 
-  --color-exito-50: #e9f8ee;
-  --color-exito-700: #15803d;
-  --color-aviso-50: #fdf4dc;
-  --color-aviso-700: #b45309;
-  --color-error-50: #fde8e8;
-  --color-error-700: #dc2626;
+  /* Hoja: fondo de página y bordes */
+  --color-crema: #f1f2ec; /* fondo de página (hoja pálida) */
+  --color-borde: #e1e2d9;
+  --color-tinta: #241712; /* texto principal */
+  --color-tenue: #6a625b; /* texto secundario */
+
+  --color-exito-50: #e7f2e6;
+  --color-exito-700: #2f6b3a;
+  --color-aviso-50: #fbf1d9;
+  --color-aviso-700: #9a5a06;
+  --color-error-50: #fbe9e7;
+  --color-error-700: #b3261e;
 }
 
 body {
   background: var(--color-crema);
   color: var(--color-tinta);
+}
+
+::selection {
+  background: var(--color-mazorca-300);
+  color: var(--color-cacao-900);
+}
+
+/* Foco visible y consistente en toda la app. */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-mazorca-500);
+  outline-offset: 2px;
+}
+
+/* Única animación no pedida por el usuario: el sello del pasaporte se estampa una vez. */
+@keyframes estampar {
+  0% {
+    opacity: 0;
+    transform: scale(1.6) rotate(-14deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-9deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-10deg);
+  }
+}
+
+.sello-estampado {
+  animation: estampar 0.55s cubic-bezier(0.2, 0.8, 0.3, 1.2) 0.25s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sello-estampado {
+    animation: none;
+    transform: rotate(-10deg);
+  }
 }

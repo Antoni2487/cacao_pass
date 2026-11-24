@@ -1,4 +1,5 @@
 import "server-only";
+import { MARCA_DEMO } from "@/lib/demo";
 import { randomUUID } from "node:crypto";
 import { cache } from "react";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
@@ -349,4 +350,24 @@ export async function registrarEscaneo(
     .from("escaneos")
     .insert({ lote_id: loteId, pais, resultado: estado });
   if (error) console.error("[escaneos]", error);
+}
+
+/**
+ * Lotes creados por `npm run lotes:ejemplo`, verificados contra la blockchain.
+ * Los usa la portada para mostrar el sistema funcionando con datos reales.
+ */
+export async function lotesDeDemostracion(): Promise<LoteVerificado[]> {
+  const db = crearClienteAdmin();
+  const { data, error } = await db
+    .from("lotes")
+    .select("*, productores!inner(*), parcelas(*), etapas(*, evidencias(url, tipo))")
+    .ilike("productores.historia", `%${MARCA_DEMO}%`)
+    .order("codigo")
+    .order("orden", { referencedTable: "etapas" })
+    .limit(3)
+    .returns<FilaLoteCompleto[]>();
+  if (error) throw error;
+
+  const wallet = walletOError();
+  return Promise.all((data ?? []).map((fila) => verificarFila(db, fila, wallet)));
 }

@@ -149,5 +149,20 @@ manipula los registros, y la verificación lo detecta.
 ### Evitar que Supabase se pause
 
 En el plan gratuito, Supabase pausa los proyectos que pasan ~7 días sin actividad. Para que la demo siga
-en línea hasta la exposición, el Día 3 se agrega un cron de Vercel que hace una consulta liviana una vez
-al día.
+en línea hasta la exposición, `vercel.json` programa un **cron de Vercel** que todos los días, entre las
+8:00 y las 9:00 de Lima, llama a `GET /api/cron/mantener-activo`. La ruta cuenta los lotes (una consulta
+liviana) y con eso Supabase registra actividad.
+
+1. Genera un secreto y ponlo en `.env.local` y en Vercel (**Settings → Environment Variables**) como
+   `CRON_SECRET`:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   Vercel lo envía en cada llamada del cron. Sin él la ruta responde 401, así nadie más puede usarla.
+
+2. Despliega. En Vercel, **Settings → Cron Jobs** muestra el cron y sus ejecuciones; el botón **Run**
+   lo prueba al momento. Debe responder `{"ok":true,…}`.
+
+El plan gratuito de Vercel permite crons una vez al día, que es justo lo necesario.

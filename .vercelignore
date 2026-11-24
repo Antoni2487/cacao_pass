@@ -1,0 +1,8 @@
+# Nunca subir secretos ni artefactos locales al desplegar con la CLI de Vercel.
+# Las variables se configuran en el proyecto de Vercel.
+.env*
+!.env.example
+.next
+node_modules
+antonis-first-app
+*.tsbuildinfo

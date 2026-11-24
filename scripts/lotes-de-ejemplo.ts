@@ -14,6 +14,7 @@
  *   npm run lotes:ejemplo -- --reiniciar  borra los de ejemplo y los vuelve a crear
  *   npm run lotes:ejemplo -- --borrar     solo borra los de ejemplo
  */
+import { MARCA_DEMO } from "@/lib/demo";
 import { formatEther, parseEther } from "ethers";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { saldoWallet, direccionWallet } from "@/lib/trazabilidad/blockchain";
@@ -25,7 +26,7 @@ import type { TipoEtapa } from "@/types/dominio";
 
 /** Tope de gas por sello con margen (hoy se pagan ~0.006 POL). */
 const COSTO_MAXIMO_POR_SELLO = parseEther("0.015");
-const MARCA = "Datos de ejemplo para la demostración de CacaoPass.";
+const MARCA = MARCA_DEMO;
 
 const db = crearClienteAdmin();
 const argumentos = new Set(process.argv.slice(2));

@@ -1,25 +1,31 @@
-import { Leaf } from "lucide-react";
+import Link from "next/link";
+import { Logo } from "@/components/panel/logo";
 import { cn } from "@/lib/utils";
 
 /** Barra superior de las páginas públicas. */
 export function CabeceraPublica({ children }: { children?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 border-b border-borde bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3.5">
+    <header className="sticky top-0 z-20 border-b border-borde/80 bg-crema/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-2.5 lg:max-w-5xl lg:px-8">
         {children ?? (
-          <div className="flex items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-lg bg-cacao-700 text-white">
-              <Leaf className="size-4" aria-hidden />
-            </span>
-            <span className="font-bold">CacaoPass</span>
-          </div>
+          <>
+            <Link href="/" aria-label="CacaoPass, ir al inicio" className="rounded-lg">
+              <Logo claro={false} />
+            </Link>
+            <Link
+              href="/"
+              className="ml-auto rounded-lg px-2 py-1 text-sm font-medium text-tenue hover:text-tinta"
+            >
+              Qué es CacaoPass
+            </Link>
+          </>
         )}
       </div>
     </header>
   );
 }
 
-/** Tarjeta blanca con título pequeño en mayúsculas, como en el Figma. */
+/** Sección de contenido de las páginas públicas. */
 export function Bloque({
   titulo,
   className,
@@ -30,12 +36,8 @@ export function Bloque({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("rounded-2xl border border-borde bg-white p-4", className)}>
-      {titulo && (
-        <h2 className="mb-3 text-[11px] font-semibold tracking-wide text-tenue uppercase">
-          {titulo}
-        </h2>
-      )}
+    <section className={cn("rounded-2xl border border-borde bg-white p-5", className)}>
+      {titulo && <h2 className="mb-3 font-serif text-lg leading-snug font-semibold">{titulo}</h2>}
       {children}
     </section>
   );
@@ -58,7 +60,7 @@ export function MapaParcela({
       title="Ubicación de la parcela"
       src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latitud},${longitud}`}
       loading="lazy"
-      className={cn("h-40 w-full rounded-xl border-0 bg-crema", className)}
+      className={cn("h-44 w-full rounded-xl border-0 bg-crema", className)}
     />
   );
 }

@@ -16,7 +16,7 @@ export function LoginForm({ siguiente }: { siguiente?: string }) {
         name="email"
         type="email"
         autoComplete="email"
-        placeholder="usuario@machupicchufoods.com"
+        placeholder="nombre@empresa.com"
         required
       />
       <Input

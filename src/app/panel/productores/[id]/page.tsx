@@ -52,7 +52,7 @@ export default async function ProductorPage({ params }: { params: Promise<{ id: 
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">
-                <thead className="border-b border-borde bg-crema text-left text-xs font-semibold text-tenue uppercase">
+                <thead className="border-b border-borde bg-crema text-left text-xs font-semibold text-tenue">
                   <tr>
                     <th className="px-6 py-3">Parcela</th>
                     <th className="px-6 py-3 text-right">Hectáreas</th>

@@ -141,7 +141,7 @@ export default async function LotePage({ params, searchParams }: Props) {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[680px] text-sm">
-                  <thead className="border-b border-borde bg-crema text-left text-xs font-semibold text-tenue uppercase">
+                  <thead className="border-b border-borde bg-crema text-left text-xs font-semibold text-tenue">
                     <tr>
                       <th className="px-6 py-3">Etapa</th>
                       <th className="px-6 py-3">Fecha</th>

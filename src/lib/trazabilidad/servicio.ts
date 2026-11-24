@@ -74,7 +74,7 @@ async function enviarSello(etapaId: string, hash: string) {
       txHash: null,
       selladoEn: null,
       errorSellado: sinFondos
-        ? "La wallet no tiene POL de prueba. Recárgala en un faucet y reintenta."
+        ? "La wallet no tiene POL suficiente para pagar el sello. Recárgala y reintenta."
         : "No se pudo sellar en blockchain. La etapa quedó guardada: reintenta el sellado.",
     };
   }

@@ -39,3 +39,30 @@ export function validarEvidencias(archivos: File[]): string | null {
   }
   return null;
 }
+
+/** Primeros bytes ("firma") de cada formato aceptado. */
+const FIRMAS: Record<string, number[][]> = {
+  "image/jpeg": [[0xff, 0xd8, 0xff]],
+  "image/png": [[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]],
+  "image/webp": [[0x52, 0x49, 0x46, 0x46]], // "RIFF" (+ "WEBP" en el byte 8)
+  "application/pdf": [[0x25, 0x50, 0x44, 0x46]], // "%PDF"
+};
+
+/**
+ * Comprueba que el contenido de cada archivo sea realmente del tipo declarado.
+ * El tipo MIME lo envía el navegador y se puede falsificar (p. ej. un HTML
+ * disfrazado de imagen), así que se leen los primeros bytes. Solo en el servidor.
+ */
+export async function validarContenidoEvidencias(archivos: File[]): Promise<string | null> {
+  for (const archivo of archivos) {
+    const cabecera = new Uint8Array(await archivo.slice(0, 12).arrayBuffer());
+    const firmas = FIRMAS[archivo.type] ?? [];
+    const coincide = firmas.some((firma) => firma.every((byte, i) => cabecera[i] === byte));
+    const esWebp =
+      archivo.type !== "image/webp" || String.fromCharCode(...cabecera.slice(8, 12)) === "WEBP";
+    if (!coincide || !esWebp) {
+      return `"${archivo.name}" no es una imagen o PDF válido.`;
+    }
+  }
+  return null;
+}

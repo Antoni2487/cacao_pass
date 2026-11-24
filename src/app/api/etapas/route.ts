@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { manejarError, respuestaError, usuarioDeLaPeticion } from "@/lib/api";
 import { registrarEtapa } from "@/lib/trazabilidad/servicio";
-import { esquemaEtapa, validarEvidencias } from "@/lib/validaciones/etapa";
+import {
+  esquemaEtapa,
+  validarContenidoEvidencias,
+  validarEvidencias,
+} from "@/lib/validaciones/etapa";
 
 // El sellado espera unos segundos la confirmación del bloque.
 export const maxDuration = 30;
@@ -30,7 +34,7 @@ export async function POST(request: Request) {
   const archivos = formData
     .getAll("evidencias")
     .filter((v): v is File => v instanceof File && v.size > 0);
-  const errorArchivos = validarEvidencias(archivos);
+  const errorArchivos = validarEvidencias(archivos) ?? (await validarContenidoEvidencias(archivos));
   if (errorArchivos)
     return respuestaError(errorArchivos, 422, { errores: { evidencias: [errorArchivos] } });
 

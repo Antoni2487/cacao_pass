@@ -10,6 +10,7 @@ esos conceptos.
 | 03  | [Guía de instalación](03-guia-de-instalacion.md)                         | Configurar Supabase, usuarios, wallet de Polygon y Vercel        |
 | 04  | [Arquitectura y código](04-arquitectura-y-codigo.md)                     | Cómo está organizado el proyecto y por qué                       |
 | 05  | [Flujo de trabajo con Git](05-flujo-git.md)                              | Ramas, commits y cómo integrar cambios                           |
+| 06  | [Seguridad](06-seguridad.md)                                             | Qué protege al sistema, cómo se probó y riesgos conocidos        |
 
 ## Estado del proyecto
 
@@ -17,4 +18,5 @@ esos conceptos.
 | --- | --------------------------------------------------------------------------------------- | --------- |
 | 1   | Proyecto, base de datos con RLS, login, productores, parcelas, lotes y dashboard básico | ✅ Hecho  |
 | 2   | Registro de etapas, hash + sellado en Polygon, QR, páginas públicas y verificación      | ✅ Hecho  |
-| 3   | Dashboard completo, 3 lotes de ejemplo (uno alterado), deploy y prueba en celular       | Pendiente |
+| 3   | Dashboard completo, 3 lotes de ejemplo (uno alterado), portada, rediseño y seguridad    | ✅ Hecho  |
+| 4   | Deploy en Vercel y prueba en celular                                                    | Pendiente |
